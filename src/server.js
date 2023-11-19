@@ -16,9 +16,27 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
+function publicRooms() {
+  const {
+    socket: {
+      adapter: { sids, rooms }
+    }
+  } = wsServer;
+  const publicRooms = [];
+  rooms.forEach((key, _) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
 wsServer.on('connection', socket => {
   socket['nickname'] = 'Anonymous';
-  socket.onAny(event => console.log(`Socket Event:${event}`));
+  socket.onAny(event => {
+    console.log(wsServer.sockets.adapter);
+    console.log(`Socket Event:${event}`);
+  });
   socket.on('enter_room', (roomName, done) => {
     socket.join(roomName);
     done();
